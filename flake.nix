@@ -1,5 +1,3 @@
-{ config, lib, pkgs, ... }:
-
 {
 
   inputs.flake-utils.url = "github:numtide/flake-utils";
@@ -10,9 +8,10 @@
         let pkgs = nixpkgs.legacyPackages.${system}; in
         {
           devShells.default = pkgs.mkShell {
-            buildInputs = [
-             pkgs.lld
-             pkgs.pkg-config
+            buildInputs = with pkgs; [
+             lld
+             pkg-config
+             wasm-pack
             ];
           };
         }
