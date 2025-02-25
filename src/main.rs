@@ -45,6 +45,8 @@ fn main() -> std::io::Result<()> {
             println!("------");
         }
     }
-    machine.print_registers();
+    if !cli.verbose {
+        machine.print_registers();
+    }
     Ok(())
 }

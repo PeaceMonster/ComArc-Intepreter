@@ -1,8 +1,11 @@
-use std::ops::{BitAnd, BitOr, BitXor};
+use std::{
+    fmt::Display,
+    ops::{BitAnd, BitOr, BitXor},
+};
 
 use strum::EnumString;
 
-#[derive(PartialEq, Eq, PartialOrd, Debug, Clone, EnumString)]
+#[derive(PartialEq, Eq, PartialOrd, Debug, Clone, EnumString, strum::Display)]
 pub enum Register {
     R0,
     R1,
@@ -35,6 +38,39 @@ pub enum Instruction {
     Jnz(Label),
     J(Label),
     Set(Register, i8),
+}
+
+impl Display for Instruction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Instruction::Zero(register) => write!(f, "ZERO {}", register),
+            Instruction::Mov(register, register1) => write!(f, "MOV {}, {}", register, register1),
+            Instruction::Add(register, register1, register2) => {
+                write!(f, "ADD {}, {}, {}", register, register1, register2)
+            }
+            Instruction::Sub(register, register1, register2) => {
+                write!(f, "SUB {}, {}, {}", register, register1, register2)
+            }
+            Instruction::Inc(register) => write!(f, "INC {}", register),
+            Instruction::Dec(register) => write!(f, "DEC {}", register),
+            Instruction::And(register, register1, register2) => {
+                write!(f, "AND {}, {}, {}", register, register1, register2)
+            }
+            Instruction::Or(register, register1, register2) => {
+                write!(f, "OR {}, {}, {}", register, register1, register2)
+            }
+            Instruction::Xor(register, register1, register2) => {
+                write!(f, "XOR {}, {}, {}", register, register1, register2)
+            }
+            Instruction::Not(register) => write!(f, "NOT {}", register),
+            Instruction::Shl(register, k) => write!(f, "SHL {}, {}", register, k),
+            Instruction::Shr(register, k) => write!(f, "SHR {}, {}", register, k),
+            Instruction::Jz(label) => write!(f, "JZ {}", label.0),
+            Instruction::Jnz(label) => write!(f, "JNZ {}", label.0),
+            Instruction::J(label) => write!(f, "J {}", label.0),
+            Instruction::Set(register, k) => write!(f, "SET {}, {}", register, k),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -86,7 +122,12 @@ impl Machine {
     }
 
     pub fn print_current_instruction(&self) {
-        println!("Current instruction: {:?}", self.program.get(self.index));
+        let current_instruction = self.program.get(self.index);
+        match current_instruction {
+            None => println!("End of program"),
+            Some(ProgramLine::Ins(i)) => println!("At instruction: {}", i),
+            Some(ProgramLine::Lbl(l)) => println!("At label: {:?}", l),
+        }
         println!("------");
     }
 
