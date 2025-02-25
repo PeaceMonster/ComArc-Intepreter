@@ -3,9 +3,12 @@ use std::{
     ops::{BitAnd, BitOr, BitXor},
 };
 
+use wasm_bindgen::prelude::*;
+
 use strum::EnumString;
 
 #[derive(PartialEq, Eq, PartialOrd, Debug, Clone, EnumString, strum::Display)]
+#[wasm_bindgen]
 pub enum Register {
     R0,
     R1,
@@ -79,6 +82,7 @@ pub enum ProgramLine {
     Lbl(Label),
 }
 
+#[wasm_bindgen]
 pub struct Machine {
     registers: Vec<(Register, i8)>,
     flag: bool,
@@ -87,6 +91,7 @@ pub struct Machine {
 }
 
 #[derive(Debug, PartialEq)]
+#[wasm_bindgen]
 pub enum ProgramError {
     EndOfProgram,
     MissingLabel,
@@ -115,26 +120,30 @@ impl Machine {
         }
     }
 
-    pub fn debug_print(&self) {
-        println!("Flag is: {}", self.flag);
-        println!("Index is: {}", self.index);
-        println!("Looking at instruction: {:?}", self.program.get(self.index));
+    pub fn get_current_instruction(&self) -> String {
+        let current_instruction = self.program.get(self.index);
+        match current_instruction {
+            None => format!("End of program"),
+            Some(ProgramLine::Ins(i)) => format!("At instruction: {}", i),
+            Some(ProgramLine::Lbl(l)) => format!("At label: {:?}", l),
+        }
     }
 
     pub fn print_current_instruction(&self) {
-        let current_instruction = self.program.get(self.index);
-        match current_instruction {
-            None => println!("End of program"),
-            Some(ProgramLine::Ins(i)) => println!("At instruction: {}", i),
-            Some(ProgramLine::Lbl(l)) => println!("At label: {:?}", l),
-        }
+        println!("{}", self.get_current_instruction());
         println!("------");
     }
 
-    pub fn print_registers(&self) {
+    pub fn get_string_registers(&self) -> String {
+        let mut result = String::new();
         for (r, v) in self.registers.iter() {
-            println!("Register: {:?} = {}", r, v);
+            result = format!("{}Register: {:?} = {}\n", result, r, v);
         }
+        result
+    }
+
+    pub fn print_registers(&self) {
+        print!("{}", self.get_string_registers());
     }
 
     pub fn init_program(&mut self, program: Vec<ProgramLine>) {
