@@ -19,6 +19,10 @@ struct Cli {
     // Turn on verbose printing
     #[arg(short, long)]
     verbose: bool,
+
+    // Print each instruction before executing
+    #[arg(short, long)]
+    print_instruction: bool,
 }
 
 fn main() -> std::io::Result<()> {
@@ -32,6 +36,9 @@ fn main() -> std::io::Result<()> {
     machine.init_program(program);
     let mut r = Ok(());
     while r == Ok(()) {
+        if cli.print_instruction {
+            machine.print_current_instruction();
+        }
         r = machine.step();
         if cli.verbose {
             machine.print_registers();

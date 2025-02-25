@@ -85,6 +85,11 @@ impl Machine {
         println!("Looking at instruction: {:?}", self.program.get(self.index));
     }
 
+    pub fn print_current_instruction(&self) {
+        println!("Current instruction: {:?}", self.program.get(self.index));
+        println!("------");
+    }
+
     pub fn print_registers(&self) {
         for (r, v) in self.registers.iter() {
             println!("Register: {:?} = {}", r, v);
