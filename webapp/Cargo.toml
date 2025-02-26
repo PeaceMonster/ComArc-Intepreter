@@ -1,0 +1,8 @@
+[package]
+name = "webapp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+asm_virtual_machine = { path = "../asm_virtual_machine" }
+yew = "0.21.0"
