@@ -5,10 +5,5 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.31", features = ["derive"] }
-pest = "2.7.15"
-pest_derive = "2.7.15"
-strum = { version = "0.27.1", features = ["derive"] }
-wasm-bindgen = "0.2.84"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
+anyhow = "1.0.96"
+asm_virtual_machine = { path = "asm_virtual_machine" }

@@ -1,14 +1,12 @@
 use std::{
     fmt::Display,
+    num::Wrapping,
     ops::{BitAnd, BitOr, BitXor},
 };
-
-use wasm_bindgen::prelude::*;
 
 use strum::EnumString;
 
 #[derive(PartialEq, Eq, PartialOrd, Debug, Clone, EnumString, strum::Display)]
-#[wasm_bindgen]
 pub enum Register {
     R0,
     R1,
@@ -40,7 +38,7 @@ pub enum Instruction {
     Jz(Label),
     Jnz(Label),
     J(Label),
-    Set(Register, i8),
+    Set(Register, u8),
 }
 
 impl Display for Instruction {
@@ -82,32 +80,30 @@ pub enum ProgramLine {
     Lbl(Label),
 }
 
-#[wasm_bindgen]
 pub struct Machine {
-    registers: Vec<(Register, i8)>,
+    registers: Vec<(Register, Wrapping<u8>)>,
     flag: bool,
     program: Vec<ProgramLine>,
     index: usize,
 }
 
 #[derive(Debug, PartialEq)]
-#[wasm_bindgen]
 pub enum ProgramError {
     EndOfProgram,
     MissingLabel,
 }
 
 impl Machine {
-    fn init_registers() -> Vec<(Register, i8)> {
+    fn init_registers() -> Vec<(Register, Wrapping<u8>)> {
         vec![
-            (Register::R0, 0),
-            (Register::R1, 0),
-            (Register::R2, 0),
-            (Register::R3, 0),
-            (Register::R4, 0),
-            (Register::R5, 0),
-            (Register::R6, 0),
-            (Register::R7, 0),
+            (Register::R0, Wrapping(0)),
+            (Register::R1, Wrapping(0)),
+            (Register::R2, Wrapping(0)),
+            (Register::R3, Wrapping(0)),
+            (Register::R4, Wrapping(0)),
+            (Register::R5, Wrapping(0)),
+            (Register::R6, Wrapping(0)),
+            (Register::R7, Wrapping(0)),
         ]
     }
 
@@ -151,7 +147,7 @@ impl Machine {
         self.index = 0;
     }
 
-    fn get_register(&self, r: &Register) -> i8 {
+    fn get_register(&self, r: &Register) -> Wrapping<u8> {
         let res = self
             .registers
             .iter()
@@ -161,7 +157,7 @@ impl Machine {
         res.1
     }
 
-    fn modify_register(&mut self, r: &Register, value: i8) {
+    fn modify_register(&mut self, r: &Register, value: Wrapping<u8>) {
         let reg_pos = self.registers.iter().position(|re| re.0 == *r).unwrap();
         let reg = self.registers.get_mut(reg_pos).unwrap();
         reg.1 = value;
@@ -185,7 +181,7 @@ impl Machine {
 
     fn intepret_instruction(&mut self, ins: &Instruction) -> Result<(), ProgramError> {
         match ins {
-            Instruction::Zero(register) => self.modify_register(&register, 0),
+            Instruction::Zero(register) => self.modify_register(&register, Wrapping(0)),
             Instruction::Mov(register, register1) => {
                 let val = self.get_register(&register1);
                 self.modify_register(&register, val);
@@ -193,67 +189,67 @@ impl Machine {
             Instruction::Add(register, register1, register2) => {
                 let val1 = self.get_register(&register1);
                 let val2 = self.get_register(&register2);
-                let (res, _) = val1.overflowing_add(val2);
+                let res = val1 + val2;
                 self.modify_register(&register, res);
-                self.set_flag(res == 0);
+                self.set_flag(res.0 == 0);
             }
             Instruction::Sub(register, register1, register2) => {
                 let val1 = self.get_register(&register1);
                 let val2 = self.get_register(&register2);
-                let (res, _) = val1.overflowing_sub(val2);
+                let res = val1 - val2;
                 self.modify_register(&register, res);
-                self.set_flag(res == 0);
+                self.set_flag(res.0 == 0);
             }
             Instruction::Inc(register) => {
                 let val = self.get_register(&register);
-                let res = val.overflowing_add(1).0;
+                let res = val + Wrapping(1);
                 self.modify_register(&register, res);
-                self.set_flag(res == 0);
+                self.set_flag(res.0 == 0);
             }
             Instruction::Dec(register) => {
                 let val = self.get_register(&register);
-                let res = val.overflowing_sub(1).0;
+                let res = val - Wrapping(1);
                 self.modify_register(&register, res);
-                self.set_flag(res == 0);
+                self.set_flag(res.0 == 0);
             }
             Instruction::And(register, register1, register2) => {
                 let val1 = self.get_register(&register1);
                 let val2 = self.get_register(&register2);
                 let res = val1.bitand(val2);
                 self.modify_register(&register, res);
-                self.set_flag(res == 0);
+                self.set_flag(res.0 == 0);
             }
             Instruction::Or(register, register1, register2) => {
                 let val1 = self.get_register(&register1);
                 let val2 = self.get_register(&register2);
                 let res = val1.bitor(val2);
                 self.modify_register(&register, res);
-                self.set_flag(res == 0);
+                self.set_flag(res.0 == 0);
             }
             Instruction::Xor(register, register1, register2) => {
                 let val1 = self.get_register(&register1);
                 let val2 = self.get_register(&register2);
                 let res = val1.bitxor(val2);
                 self.modify_register(&register, res);
-                self.set_flag(res == 0);
+                self.set_flag(res.0 == 0);
             }
             Instruction::Not(register) => {
                 let val = self.get_register(&register);
                 let res = !val;
                 self.modify_register(&register, res);
-                self.set_flag(res == 0);
+                self.set_flag(res.0 == 0);
             }
             Instruction::Shl(register, k) => {
                 let val = self.get_register(&register);
-                let res = val.overflowing_shl(*k as u32).0;
+                let res = Wrapping(val.0 << k);
                 self.modify_register(&register, res);
-                self.set_flag(res == 0);
+                self.set_flag(res.0 == 0);
             }
             Instruction::Shr(register, k) => {
                 let val = self.get_register(&register);
-                let res = val.overflowing_shl(*k as u32).0;
+                let res = Wrapping(val.0 >> k);
                 self.modify_register(&register, res);
-                self.set_flag(res == 0);
+                self.set_flag(res.0 == 0);
             }
             Instruction::Jz(label) => {
                 if self.flag {
@@ -267,7 +263,7 @@ impl Machine {
             }
             Instruction::J(label) => self.goto_label(&label)?,
             Instruction::Set(register, k) => {
-                self.modify_register(&register, *k);
+                self.modify_register(&register, Wrapping(*k));
             }
         };
         self.index += 1;

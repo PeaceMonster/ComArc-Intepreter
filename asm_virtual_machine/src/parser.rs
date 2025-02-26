@@ -7,8 +7,8 @@ use crate::machine::{Instruction, Label, ProgramLine, Register};
 #[grammar = "./asm.pest"]
 struct ASMProgramParser;
 
-pub fn parse_program(file: &str) -> Vec<ProgramLine> {
-    let prg = ASMProgramParser::parse(Rule::Program, file).unwrap_or_else(|e| panic!("{}", e));
+pub fn parse_program(file: &str) -> anyhow::Result<Vec<ProgramLine>> {
+    let prg = ASMProgramParser::parse(Rule::Program, file)?;
     let mut result: Vec<ProgramLine> = Vec::new();
 
     for pair in prg {
@@ -18,12 +18,6 @@ pub fn parse_program(file: &str) -> Vec<ProgramLine> {
             Rule::label => {
                 let label = ins.into_inner().next().unwrap().as_str();
                 ProgramLine::Lbl(Label(label.to_string()))
-            }
-            Rule::SetIns => {
-                let mut registers = ins.into_inner();
-                let dest: Register = registers.next().unwrap().as_str().try_into().unwrap();
-                let k: i8 = registers.next().unwrap().as_str().parse().unwrap();
-                ProgramLine::Ins(Instruction::Set(dest, k))
             }
             Rule::JumpIns => {
                 let mut registers = ins.into_inner();
@@ -88,5 +82,5 @@ pub fn parse_program(file: &str) -> Vec<ProgramLine> {
         };
         result.push(line);
     }
-    result
+    Ok(result)
 }
