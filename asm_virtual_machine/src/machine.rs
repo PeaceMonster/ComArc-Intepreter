@@ -91,6 +91,7 @@ pub struct Machine {
 pub enum ProgramError {
     EndOfProgram,
     MissingLabel,
+    InvalidRegister,
 }
 
 impl Machine {
@@ -161,6 +162,23 @@ impl Machine {
         let reg_pos = self.registers.iter().position(|re| re.0 == *r).unwrap();
         let reg = self.registers.get_mut(reg_pos).unwrap();
         reg.1 = value;
+    }
+
+    pub fn set_register(&mut self, rn: usize, value: i8) -> Result<(), ProgramError> {
+        let r = match rn {
+            0 => Register::R0,
+            1 => Register::R1,
+            2 => Register::R2,
+            3 => Register::R3,
+            4 => Register::R4,
+            5 => Register::R5,
+            6 => Register::R6,
+            7 => Register::R7,
+            _ => return Err(ProgramError::InvalidRegister),
+        };
+        self.modify_register(&r, Wrapping(value as u8));
+
+        Ok(())
     }
 
     fn goto_label(&mut self, lbl: &Label) -> Result<(), ProgramError> {
