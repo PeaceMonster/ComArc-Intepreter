@@ -1,0 +1,11 @@
+[package]
+name = "webapp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+asm_virtual_machine = { path = "../comarc_intepreter/asm_virtual_machine" }
+log = "0.4.26"
+wasm-logger = "0.2.0"
+web-sys = "0.3.77"
+yew = "0.21.0"
