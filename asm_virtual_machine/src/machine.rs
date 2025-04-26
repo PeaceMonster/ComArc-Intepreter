@@ -134,7 +134,11 @@ impl Machine {
     pub fn get_string_registers(&self) -> String {
         let mut result = String::new();
         for (r, v) in self.registers.iter() {
-            result = format!("{}Register: {:?} = {}\n", result, r, v);
+            let signed = v.0 as i8;
+            result = format!(
+                "{}Register: {:?} = binary: {:08b} unsigned: {:03} signed: {:03}\t\n",
+                result, r, v, v, signed
+            );
         }
         result
     }

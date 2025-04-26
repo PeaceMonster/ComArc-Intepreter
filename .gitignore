@@ -4,3 +4,4 @@
 webapp/target
 asm_virtual_machine/target
 webapp/.direnv
+webapp/dist
